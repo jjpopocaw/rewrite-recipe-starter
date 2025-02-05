@@ -33,8 +33,6 @@ import org.openrewrite.java.tree.J;
 public class NoGuavaListsNewArrayList extends Recipe {
     // These matchers use a syntax described on https://docs.openrewrite.org/reference/method-patterns
     private static final MethodMatcher NEW_ARRAY_LIST = new MethodMatcher("com.google.common.collect.Lists newArrayList()");
-    private static final MethodMatcher NEW_ARRAY_LIST_ITERABLE = new MethodMatcher("com.google.common.collect.Lists newArrayList(java.lang.Iterable)");
-    private static final MethodMatcher NEW_ARRAY_LIST_CAPACITY = new MethodMatcher("com.google.common.collect.Lists newArrayListWithCapacity(int)");
 
     @Override
     public String getDisplayName() {
@@ -55,9 +53,7 @@ public class NoGuavaListsNewArrayList extends Recipe {
                 // .getVisitor() being applied
                 // No changes made by the preconditions check will be kept
                 Preconditions.or(
-                        new UsesMethod<>(NEW_ARRAY_LIST),
-                        new UsesMethod<>(NEW_ARRAY_LIST_ITERABLE),
-                        new UsesMethod<>(NEW_ARRAY_LIST_CAPACITY)),
+                        new UsesMethod<>(NEW_ARRAY_LIST)),
                 // To avoid stale state persisting between cycles, getVisitor() should always return a new instance of
                 // its visitor
                 new JavaVisitor<ExecutionContext>() {
@@ -67,16 +63,6 @@ public class NoGuavaListsNewArrayList extends Recipe {
                     private final JavaTemplate newArrayList = JavaTemplate.builder("new ArrayList<>()")
                             .imports("java.util.ArrayList")
                             .build();
-
-                    private final JavaTemplate newArrayListIterable =
-                            JavaTemplate.builder("new ArrayList<>(#{any(java.util.Collection)})")
-                                    .imports("java.util.ArrayList")
-                                    .build();
-
-                    private final JavaTemplate newArrayListCapacity =
-                            JavaTemplate.builder("new ArrayList<>(#{any(int)})")
-                                    .imports("java.util.ArrayList")
-                                    .build();
 
                     // This method override is only here to show how to print the AST for debugging purposes.
                     // You can remove this method if you don't need it.
@@ -98,16 +84,6 @@ public class NoGuavaListsNewArrayList extends Recipe {
                             maybeRemoveImport("com.google.common.collect.Lists");
                             maybeAddImport("java.util.ArrayList");
                             return newArrayList.apply(getCursor(), method.getCoordinates().replace());
-                        } else if (NEW_ARRAY_LIST_ITERABLE.matches(method)) {
-                            maybeRemoveImport("com.google.common.collect.Lists");
-                            maybeAddImport("java.util.ArrayList");
-                            return newArrayListIterable.apply(getCursor(), method.getCoordinates().replace(),
-                                    method.getArguments().get(0));
-                        } else if (NEW_ARRAY_LIST_CAPACITY.matches(method)) {
-                            maybeRemoveImport("com.google.common.collect.Lists");
-                            maybeAddImport("java.util.ArrayList");
-                            return newArrayListCapacity.apply(getCursor(), method.getCoordinates().replace(),
-                                    method.getArguments().get(0));
                         }
                         return super.visitMethodInvocation(method, ctx);
                     }

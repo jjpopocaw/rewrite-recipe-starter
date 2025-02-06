@@ -31,60 +31,39 @@ import org.openrewrite.java.tree.J;
 @Value
 @EqualsAndHashCode(callSuper = false)
 public class NoGuavaListsNewArrayList extends Recipe {
-    // These matchers use a syntax described on https://docs.openrewrite.org/reference/method-patterns
-    private static final MethodMatcher NEW_ARRAY_LIST = new MethodMatcher("com.google.common.collect.Lists newArrayList()");
+
+    // TODO Add Matcher
 
     @Override
     public String getDisplayName() {
-        //language=markdown
         return "Use `new ArrayList<>()` instead of Guava";
     }
 
     @Override
     public String getDescription() {
-        //language=markdown
         return "Prefer the Java standard library over third-party usage of Guava in simple cases like this.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(
-                // Any change to the AST made by the preconditions check will lead to the visitor returned by Recipe
-                // .getVisitor() being applied
-                // No changes made by the preconditions check will be kept
-                Preconditions.or(
-                        new UsesMethod<>(NEW_ARRAY_LIST)),
-                // To avoid stale state persisting between cycles, getVisitor() should always return a new instance of
-                // its visitor
+                Preconditions.or(/*TODO ADD CONDITIONS*/),
                 new JavaVisitor<ExecutionContext>() {
-                    // Java Templates are used to generate Java code easily.
-                    // They use a syntax that expand Java with possible type-safe insertions points.
-                    // See https://docs.openrewrite.org/concepts-and-explanations/javatemplate for full documentation
                     private final JavaTemplate newArrayList = JavaTemplate.builder("new ArrayList<>()")
                             .imports("java.util.ArrayList")
                             .build();
 
-                    // This method override is only here to show how to print the AST for debugging purposes.
-                    // You can remove this method if you don't need it.
                     @Override
                     public J visitCompilationUnit(J.CompilationUnit cu, ExecutionContext ctx) {
-                        // This is a useful debugging tool if you're ever unsure what the visitor is visiting
+                        System.out.printf("Visiting tree: /n");
                         String printed = TreeVisitingPrinter.printTree(cu);
                         System.out.printf(printed);
-
-                        // You must always delegate to the super method to ensure the visitor continues to visit deeper
-                        // return cu; // this leads to a recipe that makes no changes at all
                         return super.visitCompilationUnit(cu, ctx);
                     }
 
-                    // Visit any method invocation, and replace matches with the new ArrayList instantiation.
                     @Override
                     public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                        if (NEW_ARRAY_LIST.matches(method)) {
-                            maybeRemoveImport("com.google.common.collect.Lists");
-                            maybeAddImport("java.util.ArrayList");
-                            return newArrayList.apply(getCursor(), method.getCoordinates().replace());
-                        }
+                        //TODO ADD LOGIC
                         return super.visitMethodInvocation(method, ctx);
                     }
                 }

@@ -23,19 +23,13 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-// This is a test for the NoGuavaListsNewArrayList recipe, as an example of how to write a test for an imperative recipe.
 class NoGuavaListsNewArrayListTest implements RewriteTest {
 
-    // Note, you can define defaults for the RecipeSpec and these defaults will be used for all tests.
-    // In this case, the recipe and the parser are common. See below, on how the defaults can be overridden
-    // per test.
     @Override
     public void defaults(RecipeSpec spec) {
-        // Note how we directly instantiate the recipe class here
         spec.recipe(new NoGuavaListsNewArrayList())
           .parser(JavaParser.fromJavaVersion()
             .logCompilationWarningsAndErrors(true)
-            // The before/after examples are using Guava classes, so we need to add the Guava library to the classpath
             .classpath("guava"));
     }
 
@@ -43,13 +37,10 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
     @Test
     void replaceWithNewArrayList() {
         rewriteRun(
-          // There is an overloaded version or rewriteRun that allows the RecipeSpec to be customized specifically
-          // for a given test. In this case, the parser for this test is configured to not log compilation warnings.
           spec -> spec
             .parser(JavaParser.fromJavaVersion()
               .logCompilationWarningsAndErrors(false)
               .classpath("guava")),
-          // language=java
           java(
             """
               import com.google.common.collect.*;
@@ -65,7 +56,7 @@ class NoGuavaListsNewArrayListTest implements RewriteTest {
               import java.util.List;
               
               class Test {
-                  List<Integer> cardinalsWorldSeries = new ArrayList<>();
+                // TODO: ADD THE DESIRED CODE
               }
               """
           )
